@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Sparkles, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Category {
   id: string;
@@ -31,6 +31,7 @@ export default function CategoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
+  const router = useRouter();
   
   useEffect(() => {
     fetchData();
@@ -56,7 +57,8 @@ export default function CategoryPage() {
     ? gifts.filter((g) => g.category_id === selectedCategory)
     : gifts;
   
-  const handleAddToCart = (gift: Gift) => {
+  const handleAddToCart = (e: React.MouseEvent, gift: Gift) => {
+    e.stopPropagation();
     if (gift.stock <= 0) {
       toast.error('库存不足');
       return;
@@ -69,6 +71,10 @@ export default function CategoryPage() {
       quantity: 1,
     });
     toast.success('已添加到购物车');
+  };
+  
+  const handleCardClick = (gift: Gift) => {
+    router.push(`/gift/${gift.id}`);
   };
   
   if (loading) {
@@ -115,7 +121,8 @@ export default function CategoryPage() {
         {filteredGifts.map((gift) => (
           <div
             key={gift.id}
-            className="bg-white rounded-lg overflow-hidden shadow-sm"
+            onClick={() => handleCardClick(gift)}
+            className="bg-white rounded-lg overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow"
           >
             <div className="aspect-square bg-gray-100 relative">
               <Image
@@ -137,7 +144,7 @@ export default function CategoryPage() {
                   <span className="text-xs text-[#E60012]"> 未来值</span>
                 </div>
                 <button
-                  onClick={() => handleAddToCart(gift)}
+                  onClick={(e) => handleAddToCart(e, gift)}
                   disabled={gift.stock <= 0}
                   className={`p-1.5 rounded-full transition-colors ${
                     gift.stock > 0
@@ -148,7 +155,10 @@ export default function CategoryPage() {
                   <ShoppingCart className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">已兑 {gift.exchange_count} 件</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-gray-400">已兑 {gift.exchange_count} 件</p>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </div>
             </div>
           </div>
         ))}

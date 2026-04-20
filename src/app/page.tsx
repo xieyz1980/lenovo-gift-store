@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart, Sparkles } from 'lucide-react';
+import { ShoppingCart, Sparkles, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface Category {
   id: string;
@@ -32,6 +33,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
+  const router = useRouter();
   
   useEffect(() => {
     fetchData();
@@ -60,7 +62,8 @@ export default function HomePage() {
     ? gifts.filter((g) => g.category_id === selectedCategory)
     : gifts;
   
-  const handleAddToCart = (gift: Gift) => {
+  const handleAddToCart = (e: React.MouseEvent, gift: Gift) => {
+    e.stopPropagation(); // 阻止冒泡到卡片点击
     if (gift.stock <= 0) {
       toast.error('库存不足');
       return;
@@ -73,6 +76,10 @@ export default function HomePage() {
       quantity: 1,
     });
     toast.success('已添加到购物车');
+  };
+  
+  const handleCardClick = (gift: Gift) => {
+    router.push(`/gift/${gift.id}`);
   };
   
   if (loading) {
@@ -110,7 +117,8 @@ export default function HomePage() {
           {filteredGifts.map((gift) => (
             <div
               key={gift.id}
-              className="bg-white rounded-lg p-3 flex gap-3 shadow-sm"
+              onClick={() => handleCardClick(gift)}
+              className="bg-white rounded-lg p-3 flex gap-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
             >
               <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
                 <Image
@@ -141,17 +149,20 @@ export default function HomePage() {
                       已兑 {gift.exchange_count} 件
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleAddToCart(gift)}
-                    disabled={gift.stock <= 0}
-                    className={`p-2 rounded-full transition-colors ${
-                      gift.stock > 0
-                        ? 'bg-[#E60012] text-white hover:bg-[#c4000f]'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => handleAddToCart(e, gift)}
+                      disabled={gift.stock <= 0}
+                      className={`p-2 rounded-full transition-colors ${
+                        gift.stock > 0
+                          ? 'bg-[#E60012] text-white hover:bg-[#c4000f]'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                    </button>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </div>
                 </div>
               </div>
             </div>
