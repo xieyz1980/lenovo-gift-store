@@ -1,20 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderNo = searchParams.get('orderNo') || '';
   const { clearCart } = useCart();
   
   useEffect(() => {
-    // 清空购物车
     clearCart();
   }, [clearCart]);
   
@@ -49,5 +48,21 @@ export default function OrderSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <OrderSuccessContent />
+    </Suspense>
   );
 }
