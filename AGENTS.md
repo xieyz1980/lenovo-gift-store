@@ -1,65 +1,149 @@
-# 项目上下文
+# 联想未来中心礼品店 - 项目文档
 
-### 版本技术栈
+## 项目概述
 
-- **Framework**: Next.js 16 (App Router)
-- **Core**: React 19
-- **Language**: TypeScript 5
+联想未来中心礼品店是一个基于 Next.js 16 + Supabase 的全栈电商应用，用户可以使用"未来值"兑换精美的联想文创礼品。
+
+## 技术栈
+
+- **前端框架**: Next.js 16 (App Router)
 - **UI 组件**: shadcn/ui (基于 Radix UI)
-- **Styling**: Tailwind CSS 4
+- **样式**: Tailwind CSS 4
+- **数据库**: Supabase (PostgreSQL)
+- **状态管理**: React Context
 
-## 目录结构
+## 功能模块
 
+### 前端功能
+
+1. **礼品浏览** (`/`)
+   - 侧边栏分类导航
+   - 礼品列表展示（未来值、已兑换数量）
+   - 一键加入购物车
+
+2. **分类页** (`/category`)
+   - 分类标签筛选
+   - 商品网格布局
+
+3. **购物车** (`/cart`)
+   - 商品数量调整
+   - 删除商品
+   - 清空购物车
+   - 结算入口
+
+4. **下单结算** (`/checkout`)
+   - 收货信息填写
+   - 订单确认
+
+5. **下单成功** (`/order-success`)
+   - 订单号展示
+
+6. **我的订单** (`/orders`)
+   - 手机号查询订单
+   - 订单状态展示
+
+### 后台管理
+
+1. **后台首页** (`/admin`)
+   - 礼品管理入口
+   - 订单管理入口
+
+2. **礼品管理** (`/admin/gifts`)
+   - 礼品列表展示
+   - 上架/下架切换
+   - 新增/编辑礼品
+   - 删除礼品
+
+3. **订单管理** (`/admin/orders`)
+   - 订单状态筛选
+   - 订单详情查看
+   - 订单状态更新（待处理→处理中→已发货→已完成）
+
+## 数据库表结构
+
+### categories (礼品分类表)
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | varchar(36) | 主键 UUID |
+| name | varchar(100) | 分类名称 |
+| sort_order | integer | 排序 |
+| created_at | timestamp | 创建时间 |
+
+### gifts (礼品表)
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | varchar(36) | 主键 UUID |
+| name | varchar(200) | 礼品名称 |
+| description | text | 描述 |
+| image_url | varchar(500) | 图片URL |
+| category_id | varchar(36) | 分类ID |
+| future_value | integer | 未来值/价格 |
+| stock | integer | 库存 |
+| exchange_count | integer | 已兑换数量 |
+| is_active | boolean | 是否上架 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 更新时间 |
+
+### orders (订单表)
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | varchar(36) | 主键 UUID |
+| order_no | varchar(50) | 订单号 |
+| user_name | varchar(100) | 收货人 |
+| user_phone | varchar(20) | 手机号 |
+| user_address | text | 收货地址 |
+| status | varchar(20) | 状态 |
+| total_future_value | integer | 订单总未来值 |
+| remark | text | 备注 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 更新时间 |
+
+### order_items (订单明细表)
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | varchar(36) | 主键 UUID |
+| order_id | varchar(36) | 订单ID |
+| gift_id | varchar(36) | 礼品ID |
+| gift_name | varchar(200) | 礼品名称(快照) |
+| quantity | integer | 数量 |
+| future_value | integer | 下单时的未来值 |
+| created_at | timestamp | 创建时间 |
+
+## API 接口
+
+### 前端 API
+
+- `GET /api/gifts` - 获取礼品列表
+- `POST /api/orders` - 创建订单
+- `GET /api/orders/query?phone=xxx` - 查询订单
+
+### 后台管理 API
+
+- `GET /api/admin/gifts` - 获取所有礼品
+- `POST /api/admin/gifts` - 创建/更新礼品
+- `PUT /api/admin/gifts` - 更新礼品状态
+- `DELETE /api/admin/gifts?id=xxx` - 删除礼品
+- `GET /api/admin/orders` - 获取所有订单
+- `PUT /api/admin/orders` - 更新订单状态
+- `GET /api/admin/categories` - 获取分类
+- `POST /api/admin/categories` - 创建分类
+
+## 开发命令
+
+```bash
+pnpm dev      # 开发环境
+pnpm build    # 构建生产版本
+pnpm start    # 启动生产环境
+pnpm ts-check # TypeScript 类型检查
 ```
-├── public/                 # 静态资源
-├── scripts/                # 构建与启动脚本
-│   ├── build.sh            # 构建脚本
-│   ├── dev.sh              # 开发环境启动脚本
-│   ├── prepare.sh          # 预处理脚本
-│   └── start.sh            # 生产环境启动脚本
-├── src/
-│   ├── app/                # 页面路由与布局
-│   ├── components/ui/      # Shadcn UI 组件库
-│   ├── hooks/              # 自定义 Hooks
-│   ├── lib/                # 工具库
-│   │   └── utils.ts        # 通用工具函数 (cn)
-│   └── server.ts           # 自定义服务端入口
-├── next.config.ts          # Next.js 配置
-├── package.json            # 项目依赖管理
-└── tsconfig.json           # TypeScript 配置
-```
 
-- 项目文件（如 app 目录、pages 目录、components 等）默认初始化到 `src/` 目录下。
+## 设计规范
 
-## 包管理规范
-
-**仅允许使用 pnpm** 作为包管理器，**严禁使用 npm 或 yarn**。
-**常用命令**：
-- 安装依赖：`pnpm add <package>`
-- 安装开发依赖：`pnpm add -D <package>`
-- 安装所有依赖：`pnpm install`
-- 移除依赖：`pnpm remove <package>`
-
-## 开发规范
-
-### 编码规范
-
-- 默认按 TypeScript `strict` 心智写代码；优先复用当前作用域已声明的变量、函数、类型和导入，禁止引用未声明标识符或拼错变量名。
-- 禁止隐式 `any` 和 `as any`；函数参数、返回值、解构项、事件对象、`catch` 错误在使用前应有明确类型或先完成类型收窄，并清理未使用的变量和导入。
-
-### next.config 配置规范
-
-- 配置的路径不要写死绝对路径，必须使用 path.resolve(__dirname, ...)、import.meta.dirname 或 process.cwd() 动态拼接。
-
-### Hydration 问题防范
-
-1. 严禁在 JSX 渲染逻辑中直接使用 typeof window、Date.now()、Math.random() 等动态数据。**必须使用 'use client' 并配合 useEffect + useState 确保动态内容仅在客户端挂载后渲染**；同时严禁非法 HTML 嵌套（如 <p> 嵌套 <div>）。
-2. **禁止使用 head 标签**，优先使用 metadata，详见文档：https://nextjs.org/docs/app/api-reference/functions/generate-metadata
-   1. 三方 CSS、字体等资源可在 `globals.css` 中顶部通过 `@import` 引入或使用 next/font
-   2. preload, preconnect, dns-prefetch 通过 ReactDOM 的 preload、preconnect、dns-prefetch 方法引入
-   3. json-ld 可阅读 https://nextjs.org/docs/app/guides/json-ld
-
-## UI 设计与组件规范 (UI & Styling Standards)
-
-- 模板默认预装核心组件库 `shadcn/ui`，位于`src/components/ui/`目录下
-- Next.js 项目**必须默认**采用 shadcn/ui 组件、风格和规范，**除非用户指定用其他的组件和规范。**
+- 主色调: 联想红 #E60012
+- 强调色: 渐变蓝紫色
+- 底部导航: 首页/分类/购物车/我的
+- 货币单位: 未来值
